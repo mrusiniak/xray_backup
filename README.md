@@ -92,19 +92,10 @@ This repository contains two Python scripts designed to manage Xray test case ba
    - Select test cases to export using the multiselect widget.
    - Verify or assign Jira keys for each test case (manually or automatically).
    - Upload test cases to Xray, including any missing attachments.
-   - Download datasets as a ZIP file if applicable, and optionally download the JSON export for debugging.
+   - Download datasets as a ZIP file if applicable. Datasets cannot be unfortunately submited by API you need to import them manually - they are named with proper key. 
+   - optionally download the JSON export for debugging. this json can also be used in XRAY test case importer.
 4. Monitor the upload status in the UI, with links to updated Jira issues upon completion.
 
-## Directory Structure
-
-```
-xray-backup-exporter/
-├── xray_backup.py              # Script for backing up Xray data
-├── xray_exporter_app.py        # Streamlit app for exporting test cases
-├── .env                        # Environment variables (not tracked)
-├── requirements.txt            # Python dependencies
-├── README.md                   # This file
-└── backups/                    # Directory for storing backups (create as needed)
 ```
 
 ## Notes
