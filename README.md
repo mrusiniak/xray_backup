@@ -24,8 +24,8 @@ This repository contains two Python scripts designed to manage Xray test case ba
 - **Key Verification**: Validates or assigns Jira issue keys for test cases, with options for manual input or automatic matching based on summary and description.
 - **Attachment Handling**: Checks for missing attachments in the target Xray instance and uploads them from a backup directory.
 - **Export to Xray**: Formats selected test cases into Xray-compatible JSON and uploads them to a specified Xray instance.
-- **Dataset Support**: Generates downloadable ZIP files containing CSV datasets for tests with associated datasets.
-- **Debugging**: Offers JSON export of test data for troubleshooting.
+- **Dataset Support**: Generates downloadable ZIP files containing CSV datasets for tests with associated datasets. due to limitation of XRAY datasets cannot be uploaded by JSON. you need to import them manually. the csv are named using JIRA issue key to make it easier
+- **Debugging**: Offers JSON export of test data for troubleshooting. this JSON can be also used in XRAY test case importer
 
 ## Prerequisites
 
