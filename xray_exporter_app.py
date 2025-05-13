@@ -1,5 +1,8 @@
+import streamlit as st
+import json
+import pandas as pd
 # -----------------------------------------------------------------------------
-# File: xray_exporter_app.py
+# File: xray_backup.py
 #
 # Copyright (c) 2025 BESA GmbH
 #
@@ -26,9 +29,6 @@
 # SOFTWARE.
 # -----------------------------------------------------------------------------
 
-import streamlit as st
-import json
-import pandas as pd
 from typing import List, Tuple, Dict
 from pathlib import Path
 import csv
@@ -187,8 +187,9 @@ def find_jira_by_summary(summary: str, description: str) -> List[str]:
 @st.fragment
 def check_and_confirm_test_keys():
     automatic=st.checkbox("Skip manual verification of issue Keys",False)
+    automaticWait=0
     if automatic:
-        st.number_input("Delay between updates (may be zero)", 0,None,3)
+        automaticWait=st.number_input("Delay between updates (may be zero)", 0,None,3)
         if 'Automatic_button_clicked' not in st.session_state:
             st.session_state.Automatic_button_clicked = False
 
@@ -225,6 +226,8 @@ def check_and_confirm_test_keys():
             if response.status_code == 200:
                 st.info(f"✅ Existing key valid: {current_key}")
                 st.session_state.confirm_index += 1
+                time.sleep(automaticWait)
+                st.rerun(scope="fragment")
                 return
         matches = find_jira_by_summary(summary, description)
         if matches:
@@ -241,7 +244,7 @@ def check_and_confirm_test_keys():
         result[index] = test_data  
         st.session_state.test_results = result  
         st.session_state.confirm_index += 1
-        time.sleep(1)
+        time.sleep(automaticWait)
         st.rerun(scope="fragment")
         return
 
@@ -257,52 +260,41 @@ def check_and_confirm_test_keys():
         if response.status_code == 200:
             st.success(f"✅ Test key `{current_key}` exists in Jira.")
             st.markdown(f"[🔗 View in Jira]({JIRA_URL}/browse/{current_key})")
-            if st.button("Next", key=f"next_existing_{index}"):
-                st.session_state.confirm_index += 1
-                st.rerun(scope="fragment")
+        else:
+            st.info("🔍 Test key is missing or not found in Jira. Searching by summary/description...")
+            matches = find_jira_by_summary(summary, description)
 
-    st.info("🔍 Test key is missing or not found in Jira. Searching by summary/description...")
-    matches = find_jira_by_summary(summary, description)
-
-    if matches:
-        match_key = matches[0]
-        st.markdown(f"🔎 Found matching Jira issue: [{match_key}]({JIRA_URL}/browse/{match_key})")
-        if st.button(f"✅ Accept and use {match_key}", key=f"accept_{index}"):
-            test_data["key"] = match_key
-            result[index] = test_data  
-            st.session_state.test_results = result  
-            st.session_state.confirm_index += 1
-            st.rerun(scope="fragment")
-    else:
-        manual_key = st.text_input("✏️ Enter Jira key manually (or leave empty to create new)", key=f"manual_input_{index}")
+            if matches:
+                match_key = matches[0]
+                st.markdown(f"🔎 Found matching Jira issue: [{match_key}]({JIRA_URL}/browse/{match_key})")
+                if st.button(f"✅ Accept and use {match_key}", key=f"accept_{index}"):
+                    test_data["key"] = match_key
+            else:
+               st.warning("No Matching key found, assing the key manually or create new key")   
+        manual_key = st.text_input("✏️ Enter to override/set Jira key manually (or leave empty)", key=f"manual_input_{index}").upper()
         if manual_key:
             check = requests.get(
                 f"{JIRA_URL}/rest/api/2/issue/{manual_key}",
                 headers=get_jira_auth_headers()
             )
             if check.status_code == 200:
-                test_data["key"] = manual_key
-                result[index] = test_data  
-                st.session_state.test_results = result 
+                test_data["key"] = manual_key 
                 st.success(f"✅ Valid Jira key set: {manual_key}")
-                if st.button("Next", key=f"next_manual_{index}"):
-                    st.session_state.confirm_index += 1
-                    st.rerun(scope="fragment")
             else:
                 st.error("❌ This Jira key does not exist.")
-        elif st.button("➕ Proceed without key (create new)", key=f"create_new_{index}"):
-            project_prefix = current_key.split("-")[0] if "-" in current_key else ""
-            if not project_prefix:
-                st.error("❌ Cannot detect project prefix from current key. Please check the format.")
-                return False, result
-            test_data["key"] = ""
-            test_data["fields"]["project"] = {"key": project_prefix}
+                if st.button("➕ Proceed without key (create new)", key=f"create_new_{index}"):
+                    project_prefix = current_key.split("-")[0] if "-" in current_key else ""
+                    if not project_prefix:
+                        st.error("❌ Cannot detect project prefix from current key. Please check the format.")
+                    test_data["key"] = ""
+                    test_data["fields"]["project"] = {"key": project_prefix}
+                    st.success(f"🆕 New test will be created in project **{project_prefix}**")
+             
+        if st.button("Next", key=f"next_existing_{index}"):
             result[index] = test_data  
-            st.session_state.test_results = result
-            st.success(f"🆕 New test will be created in project **{project_prefix}**")
+            st.session_state.test_results = result  
             st.session_state.confirm_index += 1
             st.rerun(scope="fragment")
-
     return
 
 def extract_xray_attachment_ids(description_text: str) -> List[str]:
@@ -391,7 +383,7 @@ def export_to_xray_format(
     flattened_datasets: List[dict], 
     flattened_testplans: List[dict], 
     flattened_testsets: List[dict]
-) -> Tuple[List[dict], Dict[str, dict], List[str]]:
+) -> List[dict]:
     """Export selected tests to Xray format."""
     token = get_xray_token()
     exported = []
@@ -419,6 +411,8 @@ def export_to_xray_format(
                 "generic": test.get("generic", ""),
                 "cucumber": test.get("cucumber", ""),
                 "cucumberType": test.get("cucumberType", ""),
+                "id": test.get("id",""),
+                "testVersionId": test.get("testVersionId",""),
                 "fields": {
                     "summary": meta.get("summary", ""),
                     "description": meta.get("description", "")
@@ -426,11 +420,7 @@ def export_to_xray_format(
                 "steps": steps,
                 "xray_issue_type": meta.get("issuetype", ""),
                 "xray_testtype": testtype
-            }
-
-            linked_datasets = [ds for ds in flattened_datasets if str(ds.get("$oid", ds.get("testIssueId"))) == test_id]
-            if linked_datasets:
-                dataset_per_test[key] = linked_datasets[0]
+            }    
 
             pre_ids = test.get("preConditionTargetIssueIds", [])
             meta_preconditions = [jira_metadata.get(pre_id, {}) for pre_id in pre_ids]
@@ -446,7 +436,7 @@ def export_to_xray_format(
 
             exported.append(test_data)
 
-    return exported, dataset_per_test
+    return exported
 
 def prepare_zip_from_datasets(dataset_per_test: Dict[str, dict]) -> io.BytesIO:
     """Prepare a ZIP file containing dataset CSVs."""
@@ -511,6 +501,25 @@ def check_upload_status(job_id: str, token: str) -> Tuple[str, bool]:
             return "⏳ Export Status: Still In Progress", False
     return "FATAL XRAY NOT RESPONDING", True
 
+def generate_datasets(test_results, flattened_datasets):
+    dataset_per_test = {}
+    for test_data in test_results:
+        key = test_data.get("key")
+        test_id = test_data.get("id", "")
+        test_version_id = test_data.get("testVersionId", "")
+        linked_dataset = next(
+            (
+                ds for ds in flattened_datasets
+                if str(ds.get("testIssueId")) in {test_id, test_version_id}
+            ),
+            None
+        )
+
+        if key and linked_dataset:
+            dataset_per_test[key] = linked_dataset
+    return dataset_per_test
+
+
 # --- Streamlit UI ---
 
 uploaded_dir = st.text_input("Enter path to directory containing all Xray JSON files")
@@ -573,14 +582,14 @@ if uploaded_dir and uploaded_dir_attachments:
             st.session_state.Confirmed = False
             st.session_state.selected_keys=selected_keys
             st.session_state.Automatic_button_clicked =False
-            result, dataset_per_test = export_to_xray_format(
+            result = export_to_xray_format(
                 selected_keys, tests, jira_metadata, flattened_datasets, 
                 flattened_testplans, flattened_testsets
             )
             st.session_state.test_results = result
+            st.session_state.dataset_per_test =dataset_per_test
         
-        #if "test_results" not in st.session_state:
-        
+
         check_and_confirm_test_keys()
         result = st.session_state.test_results
         if st.session_state.Confirmed:
@@ -588,10 +597,11 @@ if uploaded_dir and uploaded_dir_attachments:
             token = get_xray_token()
             missing_attachments = check_missing_attachments(result, token,uploaded_dir_attachments)
             missing_attachments_ids = list(missing_attachments.keys())
-
+            dataset_per_test=generate_datasets(result, flattened_datasets)
             
             with st.expander("⬆ Upload to Xray"):
-                st.text(result[0].get("key"))
+                keys = [item.get("key") for item in result]
+                st.text(", ".join(map(str, keys)))
                 api_url = f"{XRAY_URL}/api/v2/import/test/bulk"
                 if st.button("Upload Xray Data"):
                     
