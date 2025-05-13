@@ -414,7 +414,7 @@ def export_to_xray_format(
             steps = [{"action": s.get("action", ""), "data": s.get("data", ""), "result": s.get("result", "")} for s in test.get("steps", [])]
 
             test_data = {
-                "key": "BREV-5830",#key,
+                "key": key,
                 "type": test.get("type", ""),
                 "generic": test.get("generic", ""),
                 "cucumber": test.get("cucumber", ""),
