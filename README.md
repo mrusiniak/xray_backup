@@ -9,7 +9,7 @@ This repository contains two Python scripts designed to manage Xray test case ba
 
 If you found this useful:
  
-<a href="https:/coff.ee/mrusiniak" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-blue.png" alt="Buy Me A Coffee" height="41" width="174"></a>
+<a href="https://coff.ee/mrusiniak" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-blue.png" alt="Buy Me A Coffee" height="41" width="174"></a>
 
 ## Features
 
