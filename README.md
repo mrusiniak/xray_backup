@@ -7,6 +7,10 @@ This repository contains two Python scripts designed to manage Xray test case ba
 - **`xray_backup.py`**: Automates the backup of Xray test data and attachments, collects Jira issue metadata, and organizes the output into a structured ZIP file.
 - **`xray_exporter_app.py`**: A Streamlit-based web application that allows users to view, filter, and export Xray test cases to another Xray instance, including handling attachments and datasets.
 
+If you found this useful:
+ 
+<a href="https:/coff.ee/mrusiniak" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-blue.png" alt="Buy Me A Coffee" height="41" width="174"></a>
+
 ## Features
 
 ### xray_backup.py
