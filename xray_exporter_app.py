@@ -167,7 +167,7 @@ def find_jira_by_summary(summary: str, description: str) -> List[str]:
     else:
         jql = f'summary ~ "{summary_escaped}" AND description IS EMPTY'
 
-    url = f"{JIRA_URL}/rest/api/2/search"
+    url = f"{JIRA_URL}/rest/api/2/search/jql"
     headers = get_jira_auth_headers()
     params = {
         "jql": jql,
@@ -570,7 +570,7 @@ if uploaded_dir and uploaded_dir_attachments:
                 filtered_df = filtered_df[filtered_df["Summary"].str.contains(keyword, case=False, na=False)]
             if keyword_key:
                 filtered_df = filtered_df[filtered_df["Key"].str.contains(keyword_key, case=False, na=False)]
-            st.dataframe(filtered_df, use_container_width=True)
+            st.dataframe(filtered_df, width='stretch')
             selected_keys = st.multiselect("Select Test Keys to Export", options=filtered_df["Key"].tolist())
 
     result = []

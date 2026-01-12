@@ -64,7 +64,7 @@ If you found this useful:
    ```
 3. Install dependencies:
    ```bash
-   pip install -r requirements.txt
+   python -m pip install -r requirements.txt
    ```
 4. Set up the `.env` file with your credentials.
 5. Ensure the output directories specified in `xray_backup.py` (e.g., `h:/`, `c:/ps/temp-xray`) are accessible.
@@ -87,7 +87,7 @@ If you found this useful:
 ### xray_exporter_app.py
 1. Launch the Streamlit app:
    ```bash
-   streamlit run xray_exporter_app.py
+   python -m streamlit run xray_exporter_app.py
    ```
 2. Open the provided URL (e.g., `http://localhost:8501`) in a web browser.
 3. In the UI:
