@@ -48,7 +48,7 @@ XRAY_URL = os.getenv("XRAY_URL")
 XRAY_ID = os.getenv("XRAY_ID")
 XRAY_SECRET = os.getenv("XRAY_SECRET")
 
-OUTPUT_DIR = Path("h:/")
+OUTPUT_DIR = Path("c:/xray_backup")
 BACKUP_CACHE_FILE = Path("last_backup.json")
 BAKCUP_DIR = f"c:/ps/temp-xray"
 BAKCUP_DIR_ATTACHMENT = f"c:/ps/temp-xray-attachment"
@@ -174,7 +174,7 @@ def fetch_jira_metadata(jira_url: str, email: str, api_token: str, ids: Set[str]
         batch_number = (i // batch_size) + 1
         print(f"Fetching batch {batch_number}/{total_batches} ({len(batch)} issues)...")
 
-        search_url = f"{jira_url}/rest/api/2/search"
+        search_url = f"{jira_url}/rest/api/2/search/jql"
         headers = {
             "Accept": "application/json",
             "Content-Type": "application/json"
